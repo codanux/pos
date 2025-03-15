@@ -14,6 +14,7 @@ npx cap sync
 <docgen-index>
 
 * [`send(...)`](#send)
+* [`scan(...)`](#scan)
 
 </docgen-index>
 
@@ -29,6 +30,21 @@ send(options: { ip: string; port: number; data: string; }) => void
 | Param         | Type                                                     |
 | ------------- | -------------------------------------------------------- |
 | **`options`** | <code>{ ip: string; port: number; data: string; }</code> |
+
+--------------------
+
+
+### scan(...)
+
+```typescript
+scan(options: { ip: string; port: number; }) => Promise<any>
+```
+
+| Param         | Type                                       |
+| ------------- | ------------------------------------------ |
+| **`options`** | <code>{ ip: string; port: number; }</code> |
+
+**Returns:** <code>Promise&lt;any&gt;</code>
 
 --------------------
 
