@@ -1,5 +1,5 @@
 {
-  "name": "pos",
+  "name": "@codanux/pos",
   "version": "0.0.1",
   "description": "pos",
   "main": "dist/plugin.cjs.js",
