@@ -5,7 +5,7 @@ pos
 ## Install
 
 ```bash
-npm install pos
+npm install @codanux/pos
 npx cap sync
 ```
 
