@@ -13,24 +13,22 @@ npx cap sync
 
 <docgen-index>
 
-* [`echo(...)`](#echo)
+* [`send(...)`](#send)
 
 </docgen-index>
 
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### echo(...)
+### send(...)
 
 ```typescript
-echo(options: { value: string; }) => Promise<{ value: string; }>
+send(options: { ip: string; port: number; data: string; }) => void
 ```
 
-| Param         | Type                            |
-| ------------- | ------------------------------- |
-| **`options`** | <code>{ value: string; }</code> |
-
-**Returns:** <code>Promise&lt;{ value: string; }&gt;</code>
+| Param         | Type                                                     |
+| ------------- | -------------------------------------------------------- |
+| **`options`** | <code>{ ip: string; port: number; data: string; }</code> |
 
 --------------------
 

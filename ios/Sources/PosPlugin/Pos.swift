@@ -1,4 +1,5 @@
 import Foundation
+import Network
 
 @objc public class Pos: NSObject {
     

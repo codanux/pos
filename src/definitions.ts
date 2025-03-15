@@ -1,3 +1,3 @@
 export interface PosPlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
+  send(options: { ip: string, port: number, data: string }): void;
 }
