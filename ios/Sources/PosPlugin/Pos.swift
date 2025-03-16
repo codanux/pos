@@ -3,54 +3,77 @@ import Network
 
 @objc public class Pos: NSObject {
     
-    var connection: NWConnection?
-    var browser: NWBrowser?
+    private var connections: [String: NWConnection] = [:]
 
-    @objc public func sendData(ip: String, port: UInt16, data: Data, resolve: @escaping (UInt8) -> Void, reject: @escaping (String, String, Error?) -> Void) {
-        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(ip), port: NWEndpoint.Port(rawValue: port)!)
-        connection = NWConnection(to: endpoint, using: .tcp)
+    func connect(host: String, port: UInt16, completion: @escaping (Result<Void, Error>) -> Void) {
+        let nwHost = NWEndpoint.Host(host)
+        guard let nwPort = NWEndpoint.Port(rawValue: port) else {
+            completion(.failure(NSError(domain: "TCPConnectionManager", code: 400 )))
+            return
+        }
 
-        connection?.stateUpdateHandler = { state in
-            switch state {
-            case .ready:
-                self.connection?.send(content: data, completion: .contentProcessed({ error in
-                    if let error = error {
-                        reject("Send Failed", "Failed to send data to printer", error)
-                    }
-                }))
-                
-                self.connection?.receive(minimumIncompleteLength: 1, maximumLength: 640000) { receivedData, _, _, error in
-                    if let receivedData = receivedData?.first {
-                        resolve(receivedData)
-                    } else if let error = error {
-                        reject("Receive Failed", "Failed to receive data from printer", error)
-                    } else {
-                        reject("Receive Failed", "Failed to receive data from printer", nil)
-                    }
-                    self.connection?.cancel()
+       let connection = NWConnection(host: nwHost, port: nwPort, using: .tcp)
+       connection.stateUpdateHandler = { state in
+           switch state {
+           case .ready:
+               completion(.success(()))
+           case .failed(let error):
+               completion(.failure(error))
+           default:
+               break
+           }
+       }
+       connection.start(queue: .global())
+       let id = "\(host):\(port)"
+       connections[id] = connection
+    }
+
+    func send(host: String, port: UInt16, data: Data, completion: @escaping (Result<Data, Error>) -> Void) {
+        let id = "\(host):\(port)"
+        
+        guard let connection = connections[id] else {
+            return connect(host: host, port: port) { result in
+                switch result {
+                case .success:
+                    self.send(host: host, port: port, data: data, completion: completion)
+                case .failure(let error):
+                    completion(.failure(error))
                 }
-                
-            case .failed(let error):
-                reject("Connection Failed", "Failed to connect to printer", error)
-            default:
-                break
             }
         }
 
-        connection?.start(queue: .global())
+        connection.send(content: data, completion: .contentProcessed { error in
+            if let error = error {
+                completion(.failure(error))
+            }
+        })
+        
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { data, cData, isComplete, error in
+            if let data = data {
+                completion(.success(data))
+            } else if let error = error {
+                completion(.failure(error))
+            } 
+        }
     }
 
-    @objc public func scanNetwork(ip: String, port: UInt16, resolve: @escaping ([String]) -> Void) {
+    func disconnect(host: String, port: UInt16) {
+        let id = "\(host):\(port)"
+        connections[id]?.cancel()
+        connections.removeValue(forKey: id)
+    }
+
+    @objc public func scanNetwork(host: String, port: UInt16, resolve: @escaping ([String]) -> Void) {
         var devices: [String] = []
         let dispatchGroup = DispatchGroup()
         let queue = DispatchQueue.global(qos: .background)
 
         for i in 1...254 {
-            let ip = "\(ip).\(i)"
+            let ip = "\(host).\(i)"
             dispatchGroup.enter()
 
             queue.async {
-                let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(ip), port: NWEndpoint.Port(rawValue: port)!)
+                let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
                 let connection = NWConnection(to: endpoint, using: .tcp)
 
                 var hasLeftGroup = false
