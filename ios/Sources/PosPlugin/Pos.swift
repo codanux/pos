@@ -73,7 +73,7 @@ import Network
             dispatchGroup.enter()
 
             queue.async {
-                let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
+                let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(ip), port: NWEndpoint.Port(rawValue: port)!)
                 let connection = NWConnection(to: endpoint, using: .tcp)
 
                 var hasLeftGroup = false

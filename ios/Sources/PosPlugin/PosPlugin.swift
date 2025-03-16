@@ -60,7 +60,7 @@ public class PosPlugin: CAPPlugin, CAPBridgedPlugin {
                let byteArray = [UInt8](data)
                call.resolve(["result": byteArray])
            case .failure(let error):
-               call.reject("Veri gönderme hatası: \(error)")
+               call.reject(error)
            }
        }
     }
